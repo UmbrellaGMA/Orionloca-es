@@ -21,6 +21,9 @@ interface EBProps { children?: ReactNode; }
 interface EBState { hasError: boolean; }
 
 class ErrorBoundary extends Component<EBProps, EBState> {
+  declare state: EBState;
+  declare props: EBProps;
+
   constructor(props: EBProps) {
     super(props);
     this.state = { hasError: false };

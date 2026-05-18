@@ -404,7 +404,6 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     <div className="flex flex-col gap-4">
                       <div className="h-24 bg-black/40 border border-dashed border-white/20 rounded-xl flex items-center justify-center relative overflow-hidden">
                          {(tempContact?.linktreeVideoUrl || contactInfo.linktreeVideoUrl) ? (
-                           {/* FIX: Added preload=none */}
                            <video src={tempContact?.linktreeVideoUrl || contactInfo.linktreeVideoUrl} className="w-full h-full object-cover opacity-30" muted preload="none" />
                          ) : <Film className="text-gray-700" size={32} />}
                          <label className="absolute inset-0 flex items-center justify-center cursor-pointer">
