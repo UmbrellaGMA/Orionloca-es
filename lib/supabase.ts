@@ -1,6 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://mqhlbpfrljbbtshohpkt.supabase.co';
-const supabaseKey = 'sb_publishable_9qdWA39HhI7CUF4Jr8CiLg_5l0MpEh0';
+// FIX: Credentials moved to .env file — never hardcode keys in source code
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY as string;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('[Supabase] Missing environment variables. Check your .env file.');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseKey);

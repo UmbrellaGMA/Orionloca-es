@@ -12,6 +12,8 @@ interface DataContextType {
   links: LinkTreeLink[];
   contactInfo: ContactInfo;
   isLoading: boolean;
+  // FIX: Added error state so UI can react to failures
+  error: string | null;
   updateContactInfo: (info: ContactInfo) => Promise<void>;
   uploadImage: (file: File) => Promise<string | null>;
   addPortfolioItem: (item: Omit<Equipment, 'id'>) => Promise<void>;
@@ -54,18 +56,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [links, setLinks] = useState<LinkTreeLink[]>([]);
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContact);
   const [isLoading, setIsLoading] = useState(true);
+  // FIX: Error state for user-visible feedback
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const [
-        { data: portfolioData },
-        { data: feedbacksData },
-        { data: bannersData },
-        { data: faqData },
-        { data: reelsData },
-        { data: linksData },
-        { data: contactData }
+        { data: portfolioData, error: e1 },
+        { data: feedbacksData, error: e2 },
+        { data: bannersData, error: e3 },
+        { data: faqData, error: e4 },
+        { data: reelsData, error: e5 },
+        { data: linksData, error: e6 },
+        { data: contactData, error: e7 }
       ] = await Promise.all([
         supabase.from('portfolio').select('*').order('id'),
         supabase.from('feedbacks').select('*').order('id'),
@@ -76,16 +81,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         supabase.from('contact_info').select('*').eq('id', 1).single()
       ]);
 
+      // FIX: Check individual query errors and surface them
+      const firstError = e1 || e2 || e3 || e4 || e5 || e6;
+      if (firstError) {
+        console.error('[DataContext] Query error:', firstError.message);
+        setError('Falha ao carregar dados. Tente novamente.');
+      }
+
       if (portfolioData) setPortfolio(portfolioData);
       if (feedbacksData) setFeedbacks(feedbacksData);
       if (bannersData) setBanners(bannersData);
       if (faqData) setFaqs(faqData);
       if (reelsData) setReels(reelsData);
       if (linksData) setLinks(linksData);
-      if (contactData) setContactInfo({ ...defaultContact, ...contactData });
+      // contact_info returns PGRST116 when row doesn't exist — use default silently
+      if (contactData && !e7) setContactInfo({ ...defaultContact, ...contactData });
 
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch (err) {
+      console.error('[DataContext] Unexpected error:', err);
+      setError('Erro inesperado ao conectar com o servidor.');
     } finally {
       setIsLoading(false);
     }
@@ -95,112 +109,129 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   }, []);
 
+  // FIX: All CRUD operations now check for errors before updating local state
   const addPortfolioItem = async (item: Omit<Equipment, 'id'>) => {
     const { data, error } = await supabase.from('portfolio').insert([item]).select();
     if (error) throw error;
-    if (data) setPortfolio([...portfolio, data[0] as Equipment]);
+    if (data) setPortfolio(prev => [...prev, data[0] as Equipment]);
   };
 
   const updatePortfolioItem = async (item: Equipment) => {
     const { error } = await supabase.from('portfolio').update(item).eq('id', item.id);
     if (error) throw error;
-    setPortfolio(portfolio.map(p => p.id === item.id ? item : p));
+    setPortfolio(prev => prev.map(p => p.id === item.id ? item : p));
   };
 
   const deletePortfolioItem = async (id: number) => {
-    await supabase.from('portfolio').delete().eq('id', id);
-    setPortfolio(portfolio.filter(p => p.id !== id));
+    const { error } = await supabase.from('portfolio').delete().eq('id', id);
+    if (error) throw error;
+    setPortfolio(prev => prev.filter(p => p.id !== id));
   };
 
   const addFeedbackItem = async (item: Omit<Feedback, 'id'>) => {
     const { data, error } = await supabase.from('feedbacks').insert([item]).select();
     if (error) throw error;
-    if (data) setFeedbacks([...feedbacks, data[0] as Feedback]);
+    if (data) setFeedbacks(prev => [...prev, data[0] as Feedback]);
   };
 
   const updateFeedbackItem = async (item: Feedback) => {
-    await supabase.from('feedbacks').update(item).eq('id', item.id);
-    setFeedbacks(feedbacks.map(f => f.id === item.id ? item : f));
+    const { error } = await supabase.from('feedbacks').update(item).eq('id', item.id);
+    if (error) throw error;
+    setFeedbacks(prev => prev.map(f => f.id === item.id ? item : f));
   };
 
   const deleteFeedbackItem = async (id: number) => {
-    await supabase.from('feedbacks').delete().eq('id', id);
-    setFeedbacks(feedbacks.filter(f => f.id !== id));
+    const { error } = await supabase.from('feedbacks').delete().eq('id', id);
+    if (error) throw error;
+    setFeedbacks(prev => prev.filter(f => f.id !== id));
   };
 
   const addBannerItem = async (item: Omit<Banner, 'id'>) => {
     const { data, error } = await supabase.from('banners').insert([item]).select();
     if (error) throw error;
-    if (data) setBanners([...banners, data[0] as Banner]);
+    if (data) setBanners(prev => [...prev, data[0] as Banner]);
   };
 
   const deleteBannerItem = async (id: number) => {
-    await supabase.from('banners').delete().eq('id', id);
-    setBanners(banners.filter(b => b.id !== id));
+    const { error } = await supabase.from('banners').delete().eq('id', id);
+    if (error) throw error;
+    setBanners(prev => prev.filter(b => b.id !== id));
   };
 
   const addFAQItem = async (item: Omit<FAQItem, 'id'>) => {
     const { data, error } = await supabase.from('faq').insert([item]).select();
     if (error) throw error;
-    if (data) setFaqs([...faqs, data[0] as FAQItem]);
+    if (data) setFaqs(prev => [...prev, data[0] as FAQItem]);
   };
 
   const updateFAQItem = async (item: FAQItem) => {
-    await supabase.from('faq').update(item).eq('id', item.id);
-    setFaqs(faqs.map(f => f.id === item.id ? item : f));
+    const { error } = await supabase.from('faq').update(item).eq('id', item.id);
+    if (error) throw error;
+    setFaqs(prev => prev.map(f => f.id === item.id ? item : f));
   };
 
   const deleteFAQItem = async (id: number) => {
-    await supabase.from('faq').delete().eq('id', id);
-    setFaqs(faqs.filter(f => f.id !== id));
+    const { error } = await supabase.from('faq').delete().eq('id', id);
+    if (error) throw error;
+    setFaqs(prev => prev.filter(f => f.id !== id));
   };
 
   const addReelItem = async (item: Omit<Reel, 'id'>) => {
     const dbItem = { video_url: item.videoUrl, title: item.title };
     const { data, error } = await supabase.from('reels').insert([dbItem]).select('id, videoUrl:video_url, title');
     if (error) throw error;
-    if (data) setReels([data[0] as Reel, ...reels]);
+    if (data) setReels(prev => [data[0] as Reel, ...prev]);
   };
 
   const deleteReelItem = async (id: number) => {
-    await supabase.from('reels').delete().eq('id', id);
-    setReels(reels.filter(r => r.id !== id));
+    const { error } = await supabase.from('reels').delete().eq('id', id);
+    if (error) throw error;
+    setReels(prev => prev.filter(r => r.id !== id));
   };
 
   const addLinkItem = async (item: Omit<LinkTreeLink, 'id'>) => {
     const { data, error } = await supabase.from('linktree_links').insert([item]).select();
     if (error) throw error;
-    if (data) setLinks([...links, data[0] as LinkTreeLink]);
+    if (data) setLinks(prev => [...prev, data[0] as LinkTreeLink]);
   };
 
   const updateLinkItem = async (item: LinkTreeLink) => {
-    await supabase.from('linktree_links').update(item).eq('id', item.id);
-    setLinks(links.map(l => l.id === item.id ? item : l));
+    const { error } = await supabase.from('linktree_links').update(item).eq('id', item.id);
+    if (error) throw error;
+    setLinks(prev => prev.map(l => l.id === item.id ? item : l));
   };
 
   const deleteLinkItem = async (id: number) => {
-    await supabase.from('linktree_links').delete().eq('id', id);
-    setLinks(links.filter(l => l.id !== id));
+    const { error } = await supabase.from('linktree_links').delete().eq('id', id);
+    if (error) throw error;
+    setLinks(prev => prev.filter(l => l.id !== id));
   };
 
   const updateContactInfo = async (info: ContactInfo) => {
+    const { error } = await supabase.from('contact_info').upsert({ ...info, id: 1 });
+    if (error) throw error;
     setContactInfo(info);
-    await supabase.from('contact_info').upsert({ ...info, id: 1 });
   };
 
   const uploadImage = async (file: File): Promise<string | null> => {
     try {
       const fileName = `${Date.now()}-${file.name.replace(/[^a-z0-9]/gi, '_')}`;
       const { error } = await supabase.storage.from('uploads').upload(fileName, file);
-      if (error) return null;
+      if (error) {
+        console.error('[uploadImage] Storage error:', error.message);
+        return null;
+      }
       const { data } = supabase.storage.from('uploads').getPublicUrl(fileName);
       return data.publicUrl;
-    } catch { return null; }
+    } catch (err) {
+      console.error('[uploadImage] Unexpected error:', err);
+      return null;
+    }
   };
 
   return (
-    <DataContext.Provider value={{ 
-      portfolio, feedbacks, banners, faqs, reels, links, contactInfo, isLoading,
+    <DataContext.Provider value={{
+      portfolio, feedbacks, banners, faqs, reels, links, contactInfo, isLoading, error,
       updateContactInfo, uploadImage, addPortfolioItem, updatePortfolioItem, deletePortfolioItem,
       addFeedbackItem, updateFeedbackItem, deleteFeedbackItem,
       addBannerItem, deleteBannerItem, addFAQItem, updateFAQItem, deleteFAQItem,

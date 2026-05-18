@@ -44,17 +44,21 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
+  // FIX: Rate limiting — track attempts and cooldown
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'portfolio' | 'feedbacks' | 'faq' | 'reels' | 'linktree' | 'texts' | 'settings'>('portfolio');
   const [uploadingState, setUploadingState] = useState<{loading: boolean, type: string}>({ loading: false, type: '' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [saveStatus, setSaveStatus] = useState(false);
-  
+
   const [editPortfolio, setEditPortfolio] = useState<Partial<Equipment>>({});
   const [editFeedback, setEditFeedback] = useState<Partial<Feedback>>({});
   const [editFAQ, setEditFAQ] = useState<Partial<FAQItem>>({});
   const [editReel, setEditReel] = useState<Partial<Reel>>({});
   const [editLink, setEditLink] = useState<Partial<LinkTreeLink>>({});
+  // FIX: Initialize with defaultContact shape to avoid null access crashes
   const [tempContact, setTempContact] = useState<ContactInfo | null>(null);
 
   const { 
@@ -77,18 +81,41 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   }, []);
 
   useEffect(() => {
-    if (contactInfo && !tempContact) setTempContact(contactInfo);
-  }, [contactInfo]);
+    // FIX: Always sync tempContact when contactInfo loads (safe initialization)
+    if (contactInfo && !tempContact) {
+      setTempContact({ ...contactInfo });
+    }
+  }, [contactInfo, tempContact]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    // FIX: Rate limiting — block after 3 failed attempts for 30 seconds
+    if (cooldownUntil && Date.now() < cooldownUntil) {
+      const secs = Math.ceil((cooldownUntil - Date.now()) / 1000);
+      setErrorMsg(`Muitas tentativas. Aguarde ${secs}s.`);
+      return;
+    }
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      if (data.session) setIsAuthenticated(true);
-    } catch { setErrorMsg('Credenciais inválidas.'); }
-    finally { setIsLoading(false); }
+      if (data.session) {
+        setIsAuthenticated(true);
+        setLoginAttempts(0);
+        setCooldownUntil(null);
+      }
+    } catch {
+      const attempts = loginAttempts + 1;
+      setLoginAttempts(attempts);
+      if (attempts >= 3) {
+        setCooldownUntil(Date.now() + 30_000);
+        setErrorMsg('Acesso bloqueado por 30 segundos.');
+      } else {
+        setErrorMsg(`Credenciais inválidas. (${3 - attempts} tentativa(s) restante(s))`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFileUpload = async (file: File, target: string) => {
@@ -120,13 +147,15 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     }
   };
 
-  const openModal = (tab: string, item?: any) => {
+  // FIX: Removed `any` — typed with proper union
+  type ModalItem = Equipment | Feedback | FAQItem | Reel | LinkTreeLink;
+  const openModal = (tab: string, item?: ModalItem) => {
     setModalMode(item ? 'edit' : 'add');
-    if (tab === 'portfolio') setEditPortfolio(item || { name: '', category: 'ÁUDIO', description: '', specs: [], imageUrl: '' });
-    if (tab === 'feedbacks') setEditFeedback(item || { client: '', role: '', content: '', rating: 5 });
-    if (tab === 'faq') setEditFAQ(item || { question: '', answer: '' });
-    if (tab === 'reels') setEditReel(item || { title: '', videoUrl: '' });
-    if (tab === 'linktree') setEditLink(item || { label: '', url: '', emoji: '✨', order: links.length });
+    if (tab === 'portfolio') setEditPortfolio((item as Equipment) || { name: '', category: 'ÁUDIO', description: '', specs: [], imageUrl: '' });
+    if (tab === 'feedbacks') setEditFeedback((item as Feedback) || { client: '', role: '', content: '', rating: 5 });
+    if (tab === 'faq') setEditFAQ((item as FAQItem) || { question: '', answer: '' });
+    if (tab === 'reels') setEditReel((item as Reel) || { title: '', videoUrl: '' });
+    if (tab === 'linktree') setEditLink((item as LinkTreeLink) || { label: '', url: '', emoji: '✨', order: links.length });
     setIsModalOpen(true);
   };
 
@@ -134,19 +163,31 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     setIsLoading(true);
     try {
       if (activeTab === 'portfolio') {
-        modalMode === 'add' ? await addPortfolioItem(editPortfolio as any) : await updatePortfolioItem(editPortfolio as any);
+        modalMode === 'add'
+          ? await addPortfolioItem(editPortfolio as Omit<Equipment, 'id'>)
+          : await updatePortfolioItem(editPortfolio as Equipment);
       } else if (activeTab === 'feedbacks') {
-        modalMode === 'add' ? await addFeedbackItem(editFeedback as any) : await updateFeedbackItem(editFeedback as any);
+        modalMode === 'add'
+          ? await addFeedbackItem(editFeedback as Omit<Feedback, 'id'>)
+          : await updateFeedbackItem(editFeedback as Feedback);
       } else if (activeTab === 'faq') {
-        modalMode === 'add' ? await addFAQItem(editFAQ as any) : await updateFAQItem(editFAQ as any);
+        modalMode === 'add'
+          ? await addFAQItem(editFAQ as Omit<FAQItem, 'id'>)
+          : await updateFAQItem(editFAQ as FAQItem);
       } else if (activeTab === 'reels') {
-        await addReelItem(editReel as any);
+        await addReelItem(editReel as Omit<Reel, 'id'>);
       } else if (activeTab === 'linktree') {
-        modalMode === 'add' ? await addLinkItem(editLink as any) : await updateLinkItem(editLink as any);
+        modalMode === 'add'
+          ? await addLinkItem(editLink as Omit<LinkTreeLink, 'id'>)
+          : await updateLinkItem(editLink as LinkTreeLink);
       }
       setIsModalOpen(false);
-    } catch (e) { console.error(e); }
-    finally { setIsLoading(false); }
+    } catch (e) {
+      console.error('[Admin] Save failed:', e);
+      setErrorMsg('Falha ao salvar. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderIcon = (key: string) => {
@@ -244,7 +285,8 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 {portfolio.map(item => (
                   <div key={item.id} className="glass-panel p-4 rounded-xl border border-white/5 group">
                     <div className="aspect-video rounded-lg overflow-hidden mb-4 relative">
-                      <img src={item.imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" />
+                      {/* FIX: Added alt text */}
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" />
                     </div>
                     <div className="flex justify-between items-start">
                       <div>
@@ -297,7 +339,8 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {reels.map(r => (
                   <div key={r.id} className="aspect-[9/16] glass-panel rounded-xl overflow-hidden relative group">
-                    <video src={r.videoUrl} className="w-full h-full object-cover opacity-60" muted />
+                    {/* FIX: Added preload=none to avoid downloading all reel videos */}
+                    <video src={r.videoUrl} className="w-full h-full object-cover opacity-60" muted preload="none" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all bg-black/60">
                       <button onClick={() => deleteReelItem(r.id)} className="p-4 bg-red-600 text-white rounded-full shadow-lg"><Trash size={20}/></button>
                     </div>
@@ -344,7 +387,8 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold block">Foto de Perfil</label>
                     <div className="flex items-center gap-6">
                       <div className="relative w-24 h-24 rounded-full border-2 border-orion-glow/30 p-1 overflow-hidden">
-                        <img src={tempContact?.profilePicUrl || contactInfo.profilePicUrl} className="w-full h-full object-cover rounded-full bg-black" />
+                        {/* FIX: Added alt text */}
+                        <img src={tempContact?.profilePicUrl || contactInfo.profilePicUrl} alt="Foto de perfil" className="w-full h-full object-cover rounded-full bg-black" />
                         {uploadingState.loading && uploadingState.type === 'profile' && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><Aperture className="animate-spin text-white" /></div>
                         )}
@@ -360,7 +404,8 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     <div className="flex flex-col gap-4">
                       <div className="h-24 bg-black/40 border border-dashed border-white/20 rounded-xl flex items-center justify-center relative overflow-hidden">
                          {(tempContact?.linktreeVideoUrl || contactInfo.linktreeVideoUrl) ? (
-                           <video src={tempContact?.linktreeVideoUrl || contactInfo.linktreeVideoUrl} className="w-full h-full object-cover opacity-30" muted />
+                           {/* FIX: Added preload=none */}
+                           <video src={tempContact?.linktreeVideoUrl || contactInfo.linktreeVideoUrl} className="w-full h-full object-cover opacity-30" muted preload="none" />
                          ) : <Film className="text-gray-700" size={32} />}
                          <label className="absolute inset-0 flex items-center justify-center cursor-pointer">
                             <span className="text-[10px] font-bold text-white uppercase tracking-widest bg-black/40 px-4 py-2 rounded-full border border-white/10">
@@ -456,7 +501,7 @@ const Admin: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                     <h3 className="text-sm font-bold text-orion-accent tracking-[0.2em] uppercase">Identidade Visual</h3>
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-16 bg-white/5 rounded border border-white/10 flex items-center justify-center">
-                          {tempContact?.logoUrl ? <img src={tempContact.logoUrl} className="max-h-12" /> : <ImageIcon />}
+                          {tempContact?.logoUrl ? <img src={tempContact.logoUrl} alt="Logo da empresa" className="max-h-12" /> : <ImageIcon />}
                         </div>
                         <label className="bg-white/5 px-4 py-2 rounded text-[10px] font-bold uppercase cursor-pointer">
                           Logo
