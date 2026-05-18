@@ -1,7 +1,6 @@
 
 
 import React, { Component, useState, useEffect, ReactNode } from 'react';
-import DOMPurify from 'dompurify';
 import StarField from './components/StarField';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -15,7 +14,7 @@ import FAQ from './components/FAQ';
 import Feedbacks from './components/Feedbacks';
 import FloatingContact from './components/FloatingContact';
 import { DataProvider, useData } from './contexts/DataContext';
-import { Aperture, Rocket } from 'lucide-react';
+import { Rocket } from 'lucide-react';
 
 interface EBProps { children?: ReactNode; }
 interface EBState { hasError: boolean; }
@@ -52,51 +51,17 @@ class ErrorBoundary extends Component<EBProps, EBState> {
 }
 
 const MainApp = () => {
-  const { contactInfo, error } = useData();
-
-  // FIX: Sanitize all HTML coming from DB before injecting (XSS prevention)
-  const safeManifestoText = DOMPurify.sanitize(
-    contactInfo.manifestoText || "Transformamos tecnologia em emoção pura, criando pontes entre o digital e o inesquecível."
-  );
+  const { error } = useData();
 
   return (
-    <div className="animate-fade-in">
+    <div>
       <Navbar />
-      <main className="flex-grow">
+      <main>
         <Hero />
-        <section id="manifesto" className="py-16 md:py-24 relative overflow-hidden">
-          <div className="container mx-auto px-6">
-            <div className="border-l-2 border-orion-purple/50 pl-6 md:pl-16 py-4 max-w-4xl">
-              <h3 className="text-orion-accent text-[10px] md:text-xs tracking-[0.4em] uppercase font-bold mb-4">
-                {contactInfo.manifestoTitle || "Nossa Missão"}
-              </h3>
-              <p
-                className="text-xl md:text-3xl font-light leading-relaxed text-gray-200"
-                dangerouslySetInnerHTML={{ __html: safeManifestoText }}
-              />
-            </div>
-          </div>
-        </section>
         <Banners />
-        <div className="border-y border-white/5 bg-white/5 backdrop-blur-sm">
-          <div className="container mx-auto px-6 py-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { label: "Clientes", value: "500+" },
-              { label: "Eventos", value: "700" },
-              { label: "Sonhos", value: "1250+" },
-              { label: "Gravações", value: "300+" }
-            ].map((stat, i) => (
-              <div key={i} className="text-center md:text-left">
-                <div className="text-2xl md:text-4xl font-display font-bold text-white mb-1">{stat.value}</div>
-                <div className="text-[10px] uppercase tracking-widest text-gray-500">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* FIX: Show data load error to user instead of silently showing empty state */}
         {error && (
-          <div className="container mx-auto px-6 py-4">
+          <div className="max-w-[1400px] mx-auto px-6 py-4">
             <p className="text-center text-xs text-red-400 uppercase tracking-widest border border-red-500/20 bg-red-500/5 py-3 rounded">
               {error}
             </p>

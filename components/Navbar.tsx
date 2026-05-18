@@ -1,58 +1,93 @@
 import React, { useState, useEffect } from 'react';
-import { Aperture, User } from 'lucide-react';
-import { useData } from '../contexts/DataContext.tsx';
+import { useData } from '../contexts/DataContext';
 
 const Navbar: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [lastY, setLastY] = useState(0);
   const { contactInfo } = useData();
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 40);
+      setVisible(y < lastY || y < 80);
+      setLastY(y);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [lastY]);
 
-  const handleWhatsApp = () => {
-    const msg = encodeURIComponent("Olá Orion! Gostaria de iniciar um projeto.");
+  const handleContact = () => {
+    const msg = encodeURIComponent('Olá Orion! Gostaria de solicitar um orçamento.');
     window.open(`https://wa.me/${contactInfo.whatsapp}?text=${msg}`, '_blank');
   };
 
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${
-      isScrolled ? 'glass-panel border-orion-purple/20 py-2 md:py-3 shadow-lg' : 'bg-transparent border-transparent py-4 md:py-6'
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+      visible ? 'translate-y-0' : '-translate-y-full'
+    } ${
+      scrolled
+        ? 'bg-orion-black/90 backdrop-blur-xl border-b border-white/5'
+        : 'bg-transparent border-b border-transparent'
     }`}>
-      <div className="container mx-auto px-4 md:px-6 flex justify-between items-center">
-        <a href="#" className="flex items-center group transition-transform hover:scale-105 active:scale-95" onClick={(e) => { e.preventDefault(); window.scrollTo({top:0, behavior:'smooth'}); }}>
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 h-16 md:h-20 flex items-center justify-between">
+
+        {/* Logo */}
+        <a
+          href="#"
+          onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          className="flex items-center gap-3 group"
+          aria-label="Orion Locações — início"
+        >
           {contactInfo.logoUrl ? (
-            <img 
-              src={contactInfo.logoUrl} 
-              alt="Orion" 
-              className="h-10 md:h-16 object-contain drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]" 
+            <img
+              src={contactInfo.logoUrl}
+              alt="Orion Locações"
+              className="h-8 md:h-10 object-contain"
             />
           ) : (
-            <div className="relative">
-              <Aperture className="w-8 h-8 md:w-12 md:h-12 text-orion-accent group-hover:rotate-180 transition-transform duration-1000" />
-              <div className="absolute inset-0 blur-md bg-orion-glow opacity-40"></div>
-            </div>
+            <span className="font-display font-black text-base md:text-lg tracking-[0.2em] text-white uppercase">
+              ORION<span className="text-orion-glow">.</span>
+            </span>
           )}
         </a>
 
-        <div className="flex items-center gap-3 md:gap-6">
-          <button 
-            onClick={() => window.location.hash = 'admin'}
-            className="p-2 text-gray-500 hover:text-orion-accent hover:scale-125 active:scale-90 transition-all duration-300"
-            title="Admin"
-          >
-            <User className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
-
-          <button 
-            onClick={handleWhatsApp}
-            className="px-4 py-2 md:px-6 md:py-3 border border-orion-purple/40 text-orion-accent bg-orion-purple/5 hover:bg-orion-purple/30 hover:scale-105 active:scale-95 rounded-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]"
-          >
-            Projeto
-          </button>
+        {/* Nav Links — desktop */}
+        <div className="hidden md:flex items-center gap-10">
+          {[
+            { label: 'Coleção', href: '#collection' },
+            { label: 'Galeria', href: '#reels' },
+            { label: 'FAQ', href: '#faq' },
+            { label: 'Contato', href: '#contact' },
+          ].map(link => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="text-[10px] font-bold uppercase tracking-[0.25em] text-orion-muted hover:text-white transition-colors duration-300"
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
+
+        {/* CTA */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleContact}
+            className="btn-primary text-[10px] px-5 py-2.5 md:px-7 md:py-3"
+          >
+            Orçamento
+          </button>
+          {/* Hidden admin access */}
+          <button
+            onClick={() => { window.location.hash = 'admin'; }}
+            className="w-2 h-2 rounded-full bg-orion-purple/20 hover:bg-orion-purple/60 transition-colors"
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+        </div>
+
       </div>
     </nav>
   );

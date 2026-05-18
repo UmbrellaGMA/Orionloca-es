@@ -1,48 +1,69 @@
 import React from 'react';
 import { useData } from '../contexts/DataContext';
-import { Quote, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 const Feedbacks: React.FC = () => {
   const { feedbacks } = useData();
 
+  if (!feedbacks || feedbacks.length === 0) return null;
+
   return (
-    <section className="py-24 relative z-10">
-       <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-4 text-white">
-              FEEDBACKS
-            </h2>
-            <p className="text-gray-400">O impacto causado em quem já viajou conosco.</p>
-          </div>
+    <section id="feedbacks" className="py-20 md:py-32 relative z-10 bg-orion-surface/30">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12">
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {feedbacks.map((item) => (
-              <div key={item.id} className="relative p-8 border border-white/5 bg-white/5 backdrop-blur-sm rounded-sm hover:border-orion-purple/50 transition-colors duration-500 group">
-                 {/* Decorative corners */}
-                 <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-orion-accent/30 group-hover:border-orion-accent transition-colors duration-500"></div>
-                 <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-orion-accent/30 group-hover:border-orion-accent transition-colors duration-500"></div>
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-[1px] bg-orion-glow" />
+          <span className="section-label">Depoimentos</span>
+        </div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-14">
+          <h2 className="font-display font-black text-3xl md:text-5xl uppercase leading-[0.9] text-white">
+            O QUE NOSSOS<br />
+            <span className="text-gradient">CLIENTES DIZEM</span>
+          </h2>
+          <p className="text-orion-muted text-sm max-w-xs font-light">
+            Experiências reais de quem viveu nossos eventos.
+          </p>
+        </div>
 
-                 <Quote className="w-8 h-8 text-orion-purple mb-6 opacity-50" />
-                 
-                 <p className="text-gray-300 mb-8 leading-relaxed font-light italic min-h-[80px]">
-                   "{item.content}"
-                 </p>
-                 
-                 <div className="flex items-center justify-between border-t border-white/5 pt-6">
-                    <div>
-                      <h4 className="font-bold text-white font-display text-sm tracking-wider">{item.client}</h4>
-                      <span className="text-xs text-orion-glow uppercase tracking-widest">{item.role}</span>
-                    </div>
-                    <div className="flex gap-1">
-                      {[...Array(item.rating)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 text-orion-accent fill-orion-accent" />
-                      ))}
-                    </div>
-                 </div>
+        {/* Cards grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {feedbacks.map((fb, i) => (
+            <div
+              key={fb.id}
+              className={`surface rounded-sm p-7 flex flex-col gap-4 hover:border-orion-purple/30 transition-all duration-300 ${
+                i === 0 ? 'md:col-span-2 lg:col-span-1' : ''
+              }`}
+            >
+              {/* Stars */}
+              <div className="flex gap-1">
+                {Array.from({ length: fb.rating || 5 }).map((_, s) => (
+                  <Star key={s} size={12} className="fill-orion-glow text-orion-glow" />
+                ))}
               </div>
-            ))}
-          </div>
-       </div>
+
+              {/* Quote mark decorative */}
+              <div className="font-display font-black text-6xl leading-none text-orion-purple/20 -mb-4 select-none">"</div>
+
+              {/* Content */}
+              <p className="text-white/80 text-sm leading-relaxed font-light italic flex-1">
+                {fb.content}
+              </p>
+
+              {/* Author */}
+              <div className="flex items-center gap-3 pt-4 border-t border-white/6">
+                <div className="w-9 h-9 rounded-full bg-orion-purple/20 border border-orion-purple/30 flex items-center justify-center text-orion-accent font-bold text-sm">
+                  {fb.client?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="text-white font-bold text-sm">{fb.client}</div>
+                  {fb.role && <div className="text-orion-muted text-[10px] uppercase tracking-widest">{fb.role}</div>}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 };
