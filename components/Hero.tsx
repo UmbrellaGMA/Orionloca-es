@@ -19,8 +19,8 @@ const Hero: React.FC = () => {
           playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-screen"
         >
-          {/* Você pode trocar esse caminho pelo vídeo oficial depois */}
-          <source src="/videos/video_3.mp4" type="video/mp4" />
+          <source src="/videos/fundo-orion.MOV" type="video/quicktime" />
+          <source src="/videos/fundo-orion.MOV" type="video/mp4" />
         </video>
         {/* Degradê para garantir leitura do texto e fundir suavemente com o fundo da página */}
         <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg)]/80 via-[var(--bg)]/50 to-[var(--bg)]" />
