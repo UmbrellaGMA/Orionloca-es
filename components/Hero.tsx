@@ -53,19 +53,23 @@ const Hero: React.FC = () => {
               return (
                 <div 
                   key={item.id}
-                  className="absolute bottom-0 drop-shadow-2xl transition-transform duration-1000 ease-out hover:-translate-y-4"
+                  className="absolute bottom-0 drop-shadow-2xl"
                   style={{
                     zIndex,
                     transform: `translateX(${translateX}px) translateY(${translateY}px) scale(${scale})`,
-                    animation: `float ${4 + i}s ease-in-out infinite alternate`
                   }}
                 >
-                  <img 
-                    src={item.imageUrl} 
-                    alt={item.name} 
-                    className="h-[150px] md:h-[280px] w-auto object-contain rounded-2xl"
-                    style={{ maskImage: 'linear-gradient(to top, transparent, black 15%)', WebkitMaskImage: 'linear-gradient(to top, transparent, black 15%)' }}
-                  />
+                  <div 
+                    className="transition-transform duration-1000 ease-out hover:-translate-y-4"
+                    style={{ animation: `floatItem ${4 + i}s ease-in-out infinite alternate` }}
+                  >
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.name} 
+                      className="h-[150px] md:h-[280px] w-auto object-contain rounded-2xl"
+                      style={{ maskImage: 'linear-gradient(to top, transparent, black 15%)', WebkitMaskImage: 'linear-gradient(to top, transparent, black 15%)' }}
+                    />
+                  </div>
                 </div>
               );
             })}
@@ -88,9 +92,9 @@ const Hero: React.FC = () => {
 
       {/* Keyframes embutidos para o float */}
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes float {
-          0% { transform: translateY(0px) translateX(var(--tw-translate-x)) scale(var(--tw-scale-x)); }
-          100% { transform: translateY(-15px) translateX(var(--tw-translate-x)) scale(var(--tw-scale-x)); }
+        @keyframes floatItem {
+          0% { transform: translateY(0px); }
+          100% { transform: translateY(-20px); }
         }
       `}} />
     </section>
