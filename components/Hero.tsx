@@ -4,8 +4,8 @@ import { useData } from '../contexts/DataContext';
 const Hero: React.FC = () => {
   const { contactInfo, portfolio } = useData();
 
-  // Pegar os primeiros 4 itens do portfólio para a animação
-  const displayItems = portfolio?.slice(0, 4) || [];
+  // Pegar os primeiros 3 itens do portfólio para simetria (centro, esquerda, direita)
+  const displayItems = portfolio?.slice(0, 3) || [];
 
   return (
     <section className="relative min-h-screen bg-[var(--bg)] flex items-center justify-center overflow-hidden">
@@ -28,32 +28,21 @@ const Hero: React.FC = () => {
       </div>
 
       {/* Conteúdo Central */}
-      <div className="wrap relative z-10 w-full pt-28 pb-32 text-center flex flex-col items-center">
-        
-        <span className="t-label fade-up mb-6 inline-block bg-[var(--surface)]/50 backdrop-blur-md px-4 py-1.5 rounded-full border border-[var(--border2)]" style={{ animationDelay: '0.1s' }}>
-          Tecnologia Audiovisual
-        </span>
+      <div className="wrap relative z-10 w-full pt-32 pb-32 text-center flex flex-col items-center">
         
         <h1 
-          className="t-display text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 mb-6 fade-up drop-shadow-lg"
-          style={{ fontSize: 'clamp(42px, 8vw, 110px)', animationDelay: '0.2s' }}
+          className="t-display text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 mb-12 fade-up drop-shadow-lg"
+          style={{ fontSize: 'clamp(42px, 8vw, 110px)', animationDelay: '0.1s' }}
         >
           {contactInfo.heroHeadline1 || 'O ESPETÁCULO'} <br />
           {contactInfo.heroHeadline2 || 'COMEÇA AQUI.'}
         </h1>
 
-        <p 
-          className="t-body text-[var(--text)] max-w-2xl text-base md:text-xl fade-up mb-12 drop-shadow-md"
-          style={{ animationDelay: '0.3s' }}
-        >
-          {contactInfo.heroSubheadline || 'Eleve o nível do seu evento com locações premium e uma estrutura que marca presença.'}
-        </p>
-
         {/* Animação dos Equipamentos (Flutuando e Expandindo) */}
         {displayItems.length > 0 && (
           <div 
-            className="relative w-full max-w-4xl h-[160px] md:h-[220px] mt-8 mb-16 fade-up flex justify-center items-end"
-            style={{ animationDelay: '0.5s' }}
+            className="relative w-full max-w-4xl h-[160px] md:h-[220px] mt-12 mb-16 fade-up flex justify-center items-end"
+            style={{ animationDelay: '0.3s' }}
           >
             {displayItems.map((item, i) => {
               // Posicionamento responsivo via CSS calc
@@ -72,11 +61,11 @@ const Hero: React.FC = () => {
               return (
                 <div 
                   key={item.id}
-                  // Usamos "group" e alteramos o z-index no hover com !important para que a imagem focada sobreponha as outras
-                  className="absolute bottom-0 drop-shadow-2xl group hover:!z-[60]"
+                  // Usamos "left-1/2" com -50% translateX para centralizar absolutamente
+                  className="absolute bottom-0 left-1/2 drop-shadow-2xl group hover:!z-[60]"
                   style={{
                     zIndex,
-                    transform: `translateX(${translateX}) translateY(${translateY}) scale(${scale})`,
+                    transform: `translateX(calc(-50% + ${translateX})) translateY(${translateY}) scale(${scale})`,
                   }}
                 >
                   {/* Container da animação de float */}
