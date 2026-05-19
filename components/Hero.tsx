@@ -30,9 +30,20 @@ const Hero: React.FC = () => {
       {/* Conteúdo Central */}
       <div className="wrap relative z-10 w-full pt-32 pb-32 text-center flex flex-col items-center">
         
+        {/* Logo da Orion acima do título */}
+        <div className="fade-up mb-8" style={{ animationDelay: '0.05s' }}>
+          {contactInfo.logoUrl ? (
+            <img src={contactInfo.logoUrl} alt="Orion Locações" className="h-12 md:h-20 object-contain mx-auto" />
+          ) : (
+            <span className="font-display text-2xl md:text-3xl tracking-widest text-white/90" style={{ letterSpacing: '0.2em' }}>
+              ORION
+            </span>
+          )}
+        </div>
+
         <h1 
-          className="t-display text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 mb-12 fade-up drop-shadow-lg"
-          style={{ fontSize: 'clamp(42px, 8vw, 110px)', animationDelay: '0.1s' }}
+          className="t-display text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 mb-8 fade-up drop-shadow-lg"
+          style={{ fontSize: 'clamp(42px, 8vw, 110px)', animationDelay: '0.1s', lineHeight: '1.1' }}
         >
           {contactInfo.heroHeadline1 || 'O ESPETÁCULO'} <br />
           {contactInfo.heroHeadline2 || 'COMEÇA AQUI.'}
@@ -41,7 +52,7 @@ const Hero: React.FC = () => {
         {/* Animação dos Equipamentos (Flutuando e Expandindo) */}
         {displayItems.length > 0 && (
           <div 
-            className="relative w-full max-w-4xl h-[160px] md:h-[220px] mt-12 mb-16 fade-up flex justify-center items-end"
+            className="relative w-full max-w-4xl h-[200px] md:h-[320px] mt-8 md:mt-12 mb-16 fade-up flex justify-center items-end"
             style={{ animationDelay: '0.3s' }}
           >
             {displayItems.map((item, i) => {
