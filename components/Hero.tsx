@@ -1,109 +1,101 @@
 import React from 'react';
 import DOMPurify from 'dompurify';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 
 const Hero: React.FC = () => {
   const { contactInfo } = useData();
 
   const handleCTA = () => {
-    const msg = encodeURIComponent('Olá Orion! Gostaria de iniciar um projeto.');
+    const msg = encodeURIComponent('Olá! Gostaria de solicitar um orçamento.');
     window.open(`https://wa.me/${contactInfo.whatsapp}?text=${msg}`, '_blank');
   };
 
-  const safeSubheadline = DOMPurify.sanitize(
-    contactInfo.heroSubheadline || 'Locação de equipamentos audiovisuais para eventos de alto padrão na Baixada Santista.'
-  );
-
   return (
-    <section className="relative min-h-screen flex flex-col justify-end overflow-hidden bg-orion-black">
+    <section className="relative min-h-screen bg-black flex flex-col justify-between pt-16 overflow-hidden">
 
-      {/* Full-bleed background with purple radial */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_40%,rgba(109,40,217,0.18)_0%,transparent_70%)]" />
-        <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-orion-black to-transparent z-10" />
-      </div>
-
-      {/* Decorative grid lines */}
+      {/* Grid de fundo — sutil, não decorativo demais */}
       <div
-        className="absolute inset-0 z-0 opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(168,85,247,1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(168,85,247,1) 1px, transparent 1px)
-          `,
-          backgroundSize: '80px 80px',
+          backgroundImage: `linear-gradient(#1A1A1A 1px, transparent 1px), linear-gradient(90deg, #1A1A1A 1px, transparent 1px)`,
+          backgroundSize: '120px 120px',
+          opacity: 0.35,
         }}
       />
+      {/* Fade nas bordas */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_50%,transparent_40%,#000_100%)] pointer-events-none" />
 
-      {/* Corner number — Lando-style detail */}
-      <div className="absolute top-24 right-8 md:right-16 z-20 text-right hidden md:block">
-        <span className="font-display text-[80px] font-black text-white/[0.04] leading-none select-none">04</span>
+      {/* Número decorativo — Lando-style, mas sóbrio */}
+      <div
+        aria-hidden="true"
+        className="absolute right-0 top-1/2 -translate-y-1/2 font-display select-none pointer-events-none leading-none text-[#F0EEE9]/[0.03]"
+        style={{ fontSize: 'clamp(200px, 35vw, 500px)' }}
+      >
+        OR
       </div>
 
-      {/* Main content */}
-      <div className="relative z-20 max-w-[1400px] mx-auto px-6 md:px-12 pb-16 md:pb-24 w-full">
+      {/* Conteúdo principal */}
+      <div className="container-xl relative z-10 flex-1 flex flex-col justify-end pb-14 md:pb-20 pt-32 md:pt-40">
 
-        {/* Label */}
-        <div className="flex items-center gap-3 mb-6 md:mb-8">
-          <div className="w-8 h-[1px] bg-orion-glow" />
-          <span className="section-label">Baixada Santista · Desde 2020</span>
+        {/* Linha superior — localização + ano */}
+        <div className="flex items-center gap-6 mb-10 md:mb-14">
+          <div className="rule-accent" />
+          <span className="font-heading text-[10px] font-600 uppercase tracking-[0.35em] text-[#555]">
+            Baixada Santista · SP · Est. 2020
+          </span>
         </div>
 
-        {/* Headline — ultra bold, left-aligned, massive */}
-        <h1 className="font-display font-black uppercase leading-[0.9] tracking-tight mb-6 md:mb-10">
-          <div className="text-[clamp(52px,10vw,130px)] text-white">
+        {/* Headline — Bebas Neue, brutal, sem gradient */}
+        <h1
+          className="font-display leading-[0.88] mb-10 md:mb-14"
+          style={{ fontSize: 'clamp(72px, 13vw, 200px)' }}
+        >
+          <div className="text-white">
             {contactInfo.heroHeadline1 || 'EVENTOS'}
           </div>
-          <div className="text-[clamp(52px,10vw,130px)] text-gradient">
+          <div className="text-white">
             {contactInfo.heroHeadline2 || 'QUE FICAM'}
           </div>
-          <div className="text-[clamp(52px,10vw,130px)] text-white/15">
-            {contactInfo.heroHeadline3 || 'NA MEMÓRIA'}
+          {/* Terceira linha em itálico — tipografia como design */}
+          <div
+            className="text-[#A78BFA]"
+            style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontStyle: 'italic', fontSize: 'clamp(24px, 3.5vw, 52px)', letterSpacing: '-0.01em', lineHeight: 1.3, marginTop: '0.15em' }}
+          >
+            {contactInfo.heroSubheadline || 'Experiências audiovisuais de alto padrão para eventos memoráveis'}
           </div>
         </h1>
 
-        {/* Bottom row — description + CTA */}
-        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8 md:gap-16 pt-6 border-t border-white/8">
-          <p
-            className="max-w-md text-orion-muted text-sm md:text-base leading-relaxed font-light"
-            dangerouslySetInnerHTML={{ __html: safeSubheadline }}
-          />
+        {/* Rodapé do hero — divide e conquista */}
+        <div className="rule mb-8" />
 
-          <div className="flex items-center gap-4 shrink-0">
-            <button onClick={handleCTA} className="btn-primary">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+
+          {/* Stats — sem caixas, só números e texto */}
+          <div className="flex items-center gap-8 md:gap-12">
+            {[
+              { n: '500+', l: 'Clientes' },
+              { n: '700',  l: 'Eventos' },
+              { n: '300+', l: 'Gravações' },
+            ].map((s, i) => (
+              <div key={i}>
+                <div className="font-display text-2xl md:text-3xl text-white" style={{ letterSpacing: '0.02em' }}>{s.n}</div>
+                <div className="font-heading text-[10px] font-600 uppercase tracking-[0.2em] text-[#555] mt-0.5">{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <div className="flex items-center gap-3">
+            <button onClick={handleCTA} className="btn btn-fill">
               Iniciar Projeto
-              <ArrowRight size={14} />
+              <ArrowRight size={13} />
             </button>
-            <a
-              href="#collection"
-              className="btn-outline hidden md:inline-flex"
-            >
+            <a href="#collection" className="btn btn-ghost hidden md:inline-flex">
               Ver Coleção
             </a>
           </div>
         </div>
-
-        {/* Stats row */}
-        <div className="hidden md:grid grid-cols-4 gap-0 mt-16 pt-8 border-t border-white/6">
-          {[
-            { n: '500+', label: 'Clientes' },
-            { n: '700',  label: 'Eventos' },
-            { n: '300+', label: 'Gravações' },
-            { n: '4',    label: 'Anos de mercado' },
-          ].map((s, i) => (
-            <div key={i} className={`py-4 ${i > 0 ? 'pl-8 border-l border-white/6' : ''}`}>
-              <div className="font-display font-black text-3xl text-white mb-1">{s.n}</div>
-              <div className="text-[10px] uppercase tracking-widest text-orion-muted">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 hidden md:flex flex-col items-center gap-1 opacity-40">
-        <span className="text-[9px] uppercase tracking-[0.3em] text-orion-muted">Scroll</span>
-        <ChevronDown size={14} className="text-orion-glow animate-bounce" />
       </div>
     </section>
   );

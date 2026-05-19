@@ -1,67 +1,55 @@
 import React from 'react';
 import { useData } from '../contexts/DataContext';
-import { Star } from 'lucide-react';
 
 const Feedbacks: React.FC = () => {
   const { feedbacks } = useData();
-
-  if (!feedbacks || feedbacks.length === 0) return null;
+  if (!feedbacks?.length) return null;
 
   return (
-    <section id="feedbacks" className="py-20 md:py-32 relative z-10 bg-orion-surface/30">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+    <section id="feedbacks" className="bg-[#0A0A0A] py-20 md:py-28 border-t border-[#1E1E1E]">
+      <div className="container-xl">
 
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-[1px] bg-orion-glow" />
-          <span className="section-label">Depoimentos</span>
-        </div>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-14">
-          <h2 className="font-display font-black text-3xl md:text-5xl uppercase leading-[0.9] text-white">
-            O QUE NOSSOS<br />
-            <span className="text-gradient">CLIENTES DIZEM</span>
+        <p className="font-heading text-[10px] font-700 uppercase tracking-[0.3em] text-[#555] mb-3">— Depoimentos</p>
+        <div className="flex justify-between items-end mb-14">
+          <h2 className="font-display text-5xl md:text-7xl text-white leading-none" style={{ letterSpacing: '0.04em' }}>
+            O QUE DIZEM
           </h2>
-          <p className="text-orion-muted text-sm max-w-xs font-light">
-            Experiências reais de quem viveu nossos eventos.
-          </p>
+          <span className="font-heading text-[10px] text-[#444] uppercase tracking-widest hidden md:block">
+            {feedbacks.length} avaliações
+          </span>
         </div>
 
-        {/* Cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Layout: coluna única com borda divisória */}
+        <div className="space-y-0">
           {feedbacks.map((fb, i) => (
-            <div
-              key={fb.id}
-              className={`surface rounded-sm p-7 flex flex-col gap-4 hover:border-orion-purple/30 transition-all duration-300 ${
-                i === 0 ? 'md:col-span-2 lg:col-span-1' : ''
-              }`}
-            >
-              {/* Stars */}
-              <div className="flex gap-1">
-                {Array.from({ length: fb.rating || 5 }).map((_, s) => (
-                  <Star key={s} size={12} className="fill-orion-glow text-orion-glow" />
-                ))}
+            <div key={fb.id} className="border-t border-[#1E1E1E] py-8 grid md:grid-cols-[1fr_2fr_120px] gap-6 items-start">
+
+              {/* Autor */}
+              <div>
+                <div className="font-heading font-700 text-white text-sm mb-1">{fb.client}</div>
+                {fb.role && (
+                  <div className="font-heading text-[10px] uppercase tracking-[0.2em] text-[#444]">{fb.role}</div>
+                )}
+                {/* Rating — traços ao invés de estrelas */}
+                <div className="flex gap-1 mt-3">
+                  {Array.from({ length: fb.rating || 5 }).map((_, s) => (
+                    <div key={s} className="w-4 h-[2px] bg-[#7C3AED]" />
+                  ))}
+                </div>
               </div>
 
-              {/* Quote mark decorative */}
-              <div className="font-display font-black text-6xl leading-none text-orion-purple/20 -mb-4 select-none">"</div>
-
-              {/* Content */}
-              <p className="text-white/80 text-sm leading-relaxed font-light italic flex-1">
-                {fb.content}
+              {/* Citação */}
+              <p className="font-body text-[#888] text-sm md:text-base leading-relaxed italic">
+                "{fb.content}"
               </p>
 
-              {/* Author */}
-              <div className="flex items-center gap-3 pt-4 border-t border-white/6">
-                <div className="w-9 h-9 rounded-full bg-orion-purple/20 border border-orion-purple/30 flex items-center justify-center text-orion-accent font-bold text-sm">
-                  {fb.client?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="text-white font-bold text-sm">{fb.client}</div>
-                  {fb.role && <div className="text-orion-muted text-[10px] uppercase tracking-widest">{fb.role}</div>}
-                </div>
+              {/* Número do depoimento */}
+              <div className="font-display text-right text-[#1E1E1E] text-5xl leading-none hidden md:block" style={{ letterSpacing: '0.02em' }}>
+                {String(i + 1).padStart(2, '0')}
               </div>
             </div>
           ))}
+          <div className="border-t border-[#1E1E1E]" />
         </div>
       </div>
     </section>
