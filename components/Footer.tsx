@@ -1,74 +1,77 @@
 import React from 'react';
 import { useData } from '../contexts/DataContext';
-import { ArrowRight, Lock } from 'lucide-react';
+import { ArrowUpRight, Lock } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const { contactInfo } = useData();
 
+  const handleWhatsApp = () => {
+    window.open(`https://wa.me/${contactInfo.whatsapp}`, '_blank');
+  };
+
   return (
-    <footer id="contact" className="bg-black border-t border-[#1E1E1E]">
-
-      {/* Bloco CTA — tipografia que faz o trabalho */}
-      <div className="container-xl py-20 md:py-32 border-b border-[#1E1E1E]">
-        <p className="font-heading text-[10px] font-700 uppercase tracking-[0.3em] text-[#555] mb-8">— Vamos trabalhar juntos</p>
-
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 md:gap-16">
-          <h2
-            className="font-display text-white leading-[0.88]"
-            style={{ fontSize: 'clamp(48px, 9vw, 140px)', letterSpacing: '0.03em' }}
-          >
-            SEU EVENTO<br />
-            <span style={{ color: '#A78BFA' }}>COMEÇA</span><br />
-            AQUI
+    <footer id="contato" className="bg-[var(--bg)] border-t border-[var(--border2)] pt-24 md:pt-32 pb-12">
+      <div className="wrap">
+        
+        {/* Bloco Central de Chamada (CTA) */}
+        <div className="flex flex-col items-center text-center max-w-4xl mx-auto mb-32">
+          <span className="t-label mb-6">Próximo Passo</span>
+          
+          <h2 className="t-heading text-5xl md:text-7xl mb-10 leading-tight">
+            Pronto para fazer <br /> 
+            seu evento <span className="text-[var(--purple-l)]">acontecer?</span>
           </h2>
-
-          <div className="flex flex-col gap-4 min-w-[220px]">
-            <a
-              href={`https://wa.me/${contactInfo.whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-fill justify-between"
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+            <button 
+              onClick={handleWhatsApp}
+              className="btn btn-primary h-14 px-8 text-base rounded-full"
             >
-              WhatsApp
-              <ArrowRight size={13} />
-            </a>
-            <a
+              Falar com um Consultor
+            </button>
+            
+            <a 
               href={`mailto:${contactInfo.email}`}
-              className="btn btn-ghost justify-between"
+              className="btn btn-secondary h-14 px-8 text-base rounded-full"
             >
-              {contactInfo.email}
-              <ArrowRight size={13} />
+              Enviar Email
             </a>
           </div>
         </div>
-      </div>
 
-      {/* Info row */}
-      <div className="container-xl py-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-
-          <div className="flex flex-col md:flex-row gap-2 md:gap-8">
-            <span className="font-heading text-[11px] text-[#444] uppercase tracking-[0.2em]">
-              {contactInfo.whatsappDisplay}
-            </span>
-            <span className="font-heading text-[11px] text-[#444] uppercase tracking-[0.2em]">
-              {contactInfo.email}
-            </span>
+        {/* Linha Inferior do Footer */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-[var(--border2)]">
+          
+          {/* Copyright e Infos */}
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-8 text-sm text-[var(--muted)]">
+            <p>© {new Date().getFullYear()} Orion Locações. Todos os direitos reservados.</p>
+            <span className="hidden md:block w-1 h-1 rounded-full bg-[var(--dim)]" />
+            <p>Baixada Santista, SP</p>
           </div>
 
+          {/* Socials / Links Extras */}
           <div className="flex items-center gap-6">
-            <span className="font-heading text-[10px] text-[#333] uppercase tracking-widest">
-              © {new Date().getFullYear()} Orion Locações · Baixada Santista
-            </span>
+            <a 
+              href={contactInfo.instagramUrl || '#'} 
+              target="_blank" 
+              rel="noreferrer"
+              className="text-[var(--muted)] hover:text-white transition-colors flex items-center gap-1 text-sm font-medium"
+            >
+              Instagram <ArrowUpRight size={14} />
+            </a>
+            
+            {/* Acesso Admin Discreto */}
             <button
               onClick={() => { window.location.hash = 'admin'; }}
-              aria-label="Admin"
-              className="text-[#222] hover:text-[#444] transition-colors"
+              aria-label="Área Restrita"
+              className="text-[var(--dim)] hover:text-[var(--muted)] transition-colors ml-4"
             >
-              <Lock size={10} />
+              <Lock size={12} />
             </button>
           </div>
+          
         </div>
+
       </div>
     </footer>
   );

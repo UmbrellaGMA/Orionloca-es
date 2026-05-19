@@ -1,108 +1,96 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useData } from '../contexts/DataContext';
-
-const TICKERS = [
-  'ÁUDIO · SOM · SUBWOOFER',
-  'ILUMINAÇÃO · LED · MOVING HEAD',
-  'PROJEÇÃO · VÍDEO · LED WALL',
-  'ESTRUTURA · PALCO · TRUSS',
-  'BAIXADA SANTISTA',
-  'EVENTOS CORPORATIVOS',
-  'FESTAS · CASAMENTOS · SHOWS',
-];
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 
 const Banners: React.FC = () => {
   const { banners } = useData();
-  const [current, setCurrent] = useState(0);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const start = () => {
-    timer.current = setInterval(() => setCurrent(p => (p + 1) % banners.length), 6000);
+  if (!banners || banners.length === 0) return null;
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 400;
+      scrollRef.current.scrollBy({ left: dir === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
   };
-
-  useEffect(() => {
-    if (banners.length <= 1) return;
-    start();
-    return () => { if (timer.current) clearInterval(timer.current); };
-  }, [banners.length]);
-
-  const goTo = (i: number) => {
-    setCurrent(i);
-    if (timer.current) clearInterval(timer.current);
-    start();
-  };
-
-  const tickerItems = [...TICKERS, ...TICKERS];
 
   return (
-    <>
-      {/* ── Ticker horizontal ───────────────────────────────── */}
-      <div className="marquee-wrap border-t border-b border-[#1E1E1E] bg-[#0A0A0A] py-3.5">
-        <div className="marquee-track">
-          {tickerItems.map((item, i) => (
-            <span key={i} className="flex items-center gap-5 px-6 shrink-0">
-              <span
-                className="font-heading text-[10px] font-700 uppercase tracking-[0.28em] text-[#888] whitespace-nowrap"
-              >
-                {item}
-              </span>
-              <span className="w-1 h-1 rounded-full bg-[#7C3AED]" aria-hidden="true" />
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Carrossel de banners ────────────────────────────── */}
-      {banners && banners.length > 0 && (
-        <section className="px-4 md:px-10 py-8 bg-black">
-          <div className="max-w-[1440px] mx-auto">
-
-            {/* Label — tipografia, não badge */}
-            <p className="font-heading text-[10px] font-700 uppercase tracking-[0.3em] text-[#555] mb-4">
-              — Destaques
+    <section id="promocoes" className="py-24 md:py-32 relative">
+      <div className="wrap">
+        
+        {/* Cabeçalho */}
+        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-16">
+          <div>
+            <h2 className="t-heading text-4xl md:text-5xl mb-4">Em Destaque</h2>
+            <p className="t-body text-[var(--muted)] max-w-md">
+              Aproveite nossas soluções completas e pacotes exclusivos para transformar seu evento.
             </p>
+          </div>
 
-            <div className="relative w-full overflow-hidden bg-[#111]" style={{ aspectRatio: '21/8' }}>
-              {banners.map((banner, idx) => (
-                <div
-                  key={banner.id}
-                  className={`absolute inset-0 transition-opacity duration-1000 ${idx === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                >
-                  <picture className="block w-full h-full">
-                    <source media="(max-width: 768px)" srcSet={banner.mobileUrl || banner.desktopUrl} />
-                    <img src={banner.desktopUrl} alt={banner.title || 'Orion'} className="w-full h-full object-cover" />
-                  </picture>
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/20 to-transparent" />
-                  {banner.title && (
-                    <div className="absolute bottom-6 left-8 md:bottom-10 md:left-12">
-                      <h3 className="font-display text-2xl md:text-5xl text-white" style={{ letterSpacing: '0.06em' }}>
-                        {banner.title}
-                      </h3>
-                    </div>
-                  )}
-                </div>
-              ))}
+          {/* Navegação Manual */}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => scroll('left')}
+              className="w-12 h-12 rounded-full border border-[var(--border2)] flex items-center justify-center text-white hover:bg-[var(--surface)] transition-colors"
+              aria-label="Anterior"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button 
+              onClick={() => scroll('right')}
+              className="w-12 h-12 rounded-full border border-[var(--border2)] flex items-center justify-center text-white hover:bg-[var(--surface)] transition-colors"
+              aria-label="Próximo"
+            >
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
 
-              {/* Dots — mínimos, sem pill ativo */}
-              {banners.length > 1 && (
-                <div className="absolute bottom-4 right-6 z-20 flex gap-2 items-center">
-                  {banners.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => goTo(i)}
-                      aria-label={`Slide ${i + 1}`}
-                      className={`rounded-full transition-all duration-400 ${
-                        i === current ? 'w-5 h-1 bg-white' : 'w-1 h-1 bg-white/30'
-                      }`}
-                    />
-                  ))}
+        {/* Lista Horizontal de Promoções */}
+        <div 
+          ref={scrollRef}
+          className="flex overflow-x-auto hide-scroll gap-6 md:gap-8 pb-8 snap-x snap-mandatory"
+        >
+          {banners.map((banner, i) => (
+            <div 
+              key={banner.id || i}
+              className="min-w-[85vw] md:min-w-[600px] shrink-0 snap-center relative rounded-3xl overflow-hidden group"
+              style={{ aspectRatio: '16/9' }}
+            >
+              <picture className="block w-full h-full">
+                <source media="(max-width: 768px)" srcSet={banner.mobileUrl || banner.desktopUrl} />
+                <img 
+                  src={banner.desktopUrl} 
+                  alt={banner.title || 'Promoção'} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+              </picture>
+              
+              {/* Overlay Glass */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#080810]/90 via-[#080810]/20 to-transparent opacity-90" />
+              
+              {banner.title && (
+                <div className="absolute bottom-8 left-8 md:bottom-12 md:left-12 right-8">
+                  <span className="t-label text-[var(--purple-l)] mb-3 block">Oferta Especial</span>
+                  <h3 className="t-display text-3xl md:text-4xl text-white mb-6">
+                    {banner.title}
+                  </h3>
+                  
+                  <button 
+                    onClick={() => window.open('https://wa.me/5513999999999', '_blank')} // Será substituído pelo link real ou WhatsApp
+                    className="btn btn-secondary bg-white/10 backdrop-blur-md"
+                  >
+                    Saiba Mais
+                  </button>
                 </div>
               )}
             </div>
-          </div>
-        </section>
-      )}
-    </>
+          ))}
+        </div>
+
+      </div>
+    </section>
   );
 };
 

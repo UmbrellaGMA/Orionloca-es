@@ -1,96 +1,146 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useData } from '../contexts/DataContext';
+import React, { useRef, useState, useEffect } from 'react';
+import { Play, Pause, VolumeX, Volume2, ArrowRight, ArrowLeft } from 'lucide-react';
+
+const REELS = [
+  { id: '1', url: '/videos/dj_1.mp4', label: 'Festival Stage' },
+  { id: '2', url: '/videos/video_3.mp4', label: 'Corporate Event' },
+  { id: '3', url: '/videos/video_2.mp4', label: 'Wedding Party' },
+];
 
 const ReelGallery: React.FC = () => {
-  const { reels } = useData();
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [muted, setMuted] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
+  const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
 
-  // FIX: Early return BEFORE useEffect hooks would violate rules-of-hooks.
-  // Instead, guard the effect body with the condition check.
+  // Intercept intersection to auto-pause when out of view
   useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    // Guard: don't run if no container or no reels
-    if (!scrollContainer || !reels || reels.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting && entry.target instanceof HTMLVideoElement) {
+            entry.target.pause();
+            if (playing === entry.target.id) setPlaying(null);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
 
-    let animationFrameId: number;
-    const speed = 0.5;
+    Object.values(videoRefs.current).forEach((v: HTMLVideoElement | null) => {
+      if (v) observer.observe(v);
+    });
 
-    const step = () => {
-      if (!isPaused && scrollContainer) {
-        scrollContainer.scrollLeft += speed;
-        if (scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth - 1) {
-          scrollContainer.scrollLeft = 0;
+    return () => observer.disconnect();
+  }, [playing]);
+
+  const togglePlay = (id: string) => {
+    const video = videoRefs.current[id];
+    if (!video) return;
+
+    if (playing === id) {
+      video.pause();
+      setPlaying(null);
+    } else {
+      // Pause others
+      Object.values(videoRefs.current).forEach((v: HTMLVideoElement | null) => {
+        if (v && v.id !== id) {
+          v.pause();
         }
-      }
-      animationFrameId = requestAnimationFrame(step);
-    };
+      });
+      video.play();
+      setPlaying(id);
+    }
+  };
 
-    animationFrameId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [reels, isPaused]);
-
-  // Correct placement: after hooks, before render
-  if (!reels || reels.length === 0) return null;
+  const scroll = (dir: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 350;
+      scrollRef.current.scrollBy({ left: dir === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   return (
-    <section className="py-12 relative z-10 border-b border-white/5 bg-black/30">
-      <div className="container mx-auto px-6 mb-8 text-center">
-        <h2 className="text-2xl font-display font-bold text-white tracking-widest uppercase mb-2">
-          Galeria <span className="text-orion-glow">Ao Vivo</span>
-        </h2>
-        <p className="text-xs text-gray-500 uppercase tracking-widest">Registros reais de eventos estelares</p>
-      </div>
+    <section id="reels" className="py-24 md:py-32 relative bg-[var(--bg)]">
+      
+      {/* Background glow sutil */}
+      <div className="absolute inset-0 bg-glow-right opacity-40 pointer-events-none" />
 
-      <div
-        ref={scrollRef}
-        className="flex overflow-x-auto gap-4 pb-8 px-6 scrollbar-hide"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
-      >
-        {reels.map((reel) => (
-          <div
-            key={reel.id}
-            className="flex-shrink-0 relative w-[240px] md:w-[280px] aspect-[9/16] rounded-xl overflow-hidden border border-white/10 group bg-black/50"
-          >
-            {/* FIX: preload="none" prevents downloading all videos on page load */}
-            <video
-              src={reel.videoUrl}
-              className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="none"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
-            <div className="absolute inset-0 border-2 border-transparent group-hover:border-orion-purple/50 rounded-xl transition-colors pointer-events-none"></div>
-            {reel.title && (
-              <div className="absolute bottom-4 left-4 right-4 z-20">
-                <p className="text-white text-sm font-bold shadow-black drop-shadow-md">{reel.title}</p>
+      <div className="wrap">
+        
+        {/* Cabeçalho */}
+        <div className="flex items-end justify-between mb-16">
+          <div>
+            <span className="t-label mb-4 inline-block">Galeria</span>
+            <h2 className="t-heading text-4xl md:text-5xl">Eventos Reais</h2>
+          </div>
+          
+          {/* Navegação Manual */}
+          <div className="hidden md:flex items-center gap-3">
+            <button 
+              onClick={() => scroll('left')}
+              className="w-12 h-12 rounded-full border border-[var(--border2)] flex items-center justify-center text-white hover:bg-[var(--surface)] transition-colors"
+              aria-label="Anterior"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button 
+              onClick={() => scroll('right')}
+              className="w-12 h-12 rounded-full border border-[var(--border2)] flex items-center justify-center text-white hover:bg-[var(--surface)] transition-colors"
+              aria-label="Próximo"
+            >
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Carrossel de Reels */}
+        <div 
+          ref={scrollRef}
+          className="flex overflow-x-auto hide-scroll gap-6 pb-8 snap-x snap-mandatory"
+        >
+          {REELS.map((reel) => (
+            <div 
+              key={reel.id} 
+              className="relative shrink-0 w-[280px] md:w-[320px] aspect-[9/16] rounded-3xl overflow-hidden bg-[var(--surface)] snap-center group border border-[var(--border2)]"
+            >
+              <video
+                id={reel.id}
+                ref={(el) => { videoRefs.current[reel.id] = el; }}
+                src={reel.url}
+                className="absolute inset-0 w-full h-full object-cover"
+                loop
+                muted={muted}
+                playsInline
+              />
+
+              {/* Controles Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/10 transition-opacity">
+                
+                <button
+                  onClick={() => togglePlay(reel.id)}
+                  className="absolute inset-0 w-full h-full flex items-center justify-center"
+                >
+                  <div className={`w-16 h-16 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white transition-all duration-300 ${playing === reel.id ? 'opacity-0 scale-90' : 'opacity-100 scale-100 group-hover:bg-[var(--purple)]'}`}>
+                    <Play fill="currentColor" size={24} className="ml-1" />
+                  </div>
+                </button>
+
+                {/* Footer do Card */}
+                <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+                  <span className="t-display text-white font-semibold">{reel.label}</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMuted(!muted); }}
+                    className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                  >
+                    {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                  </button>
+                </div>
+
               </div>
-            )}
-          </div>
-        ))}
-
-        {/* Duplicate visually for seamless loop when list is short */}
-        {reels.length < 5 && reels.map((reel) => (
-          <div
-            key={`dup-${reel.id}`}
-            className="flex-shrink-0 relative w-[240px] md:w-[280px] aspect-[9/16] rounded-xl overflow-hidden border border-white/10 group bg-black/50 opacity-50 grayscale"
-            aria-hidden="true"
-          >
-            <video
-              src={reel.videoUrl}
-              className="w-full h-full object-cover"
-              muted
-              playsInline
-              preload="none"
-            />
-          </div>
-        ))}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

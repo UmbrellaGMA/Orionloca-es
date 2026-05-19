@@ -1,128 +1,158 @@
 @import "tailwindcss";
 
-/* ─── Fontes Editoriais — nada de Orbitron/Inter ──────── */
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+/* ─── Google Fonts ────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Bebas+Neue&display=swap');
 
-@theme {
-  /* Paleta — roxo restrito, não em tudo */
-  --color-black:    #000000;
-  --color-off:      #0A0A0A;
-  --color-surface:  #111111;
-  --color-border:   #1E1E1E;
-  --color-muted:    #555555;
-  --color-dim:      #888888;
-  --color-white:    #F0EEE9;  /* branco com leve warmth, não RGB puro */
-  --color-purple:   #7C3AED;  /* roxo real, não açucarado */
-  --color-purple-l: #A78BFA;  /* lilás para destaques pontuais */
+/* ─── Design Tokens ───────────────────────────────────── */
+:root {
+  --bg:        #080810;
+  --surface:   #0F0F1A;
+  --surface2:  #14141F;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #E8E6F0;
+  --muted:     #6B6880;
+  --dim:       #3A3850;
+  --purple:    #7C3AED;
+  --purple-m:  #9D5FF5;
+  --purple-l:  #C4B0FF;
+  --white:     #FFFFFF;
 
-  /* Tipografia — editorial, não gaming */
-  --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
-  --font-heading: 'Syne', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
   --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'Bebas Neue', sans-serif;  /* só para números grandes */
 
-  /* Animações */
-  --animate-marquee: marquee 35s linear infinite;
-  --animate-in:      slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(32px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* ─── Base ────────────────────────────────────────────── */
+/* ─── Reset ───────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; font-size: 16px; }
+html { scroll-behavior: smooth; }
 body {
-  background: #000;
-  color: #F0EEE9;
-  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
   font-weight: 300;
+  font-size: 16px;
+  line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+img { display: block; max-width: 100%; }
+button { cursor: pointer; border: none; background: none; font: inherit; }
+a { color: inherit; text-decoration: none; }
 
-/* ─── Tipografia funcional ────────────────────────────── */
-.font-display { font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.03em; }
-.font-heading  { font-family: 'Syne', sans-serif; }
-.font-body     { font-family: 'DM Sans', sans-serif; }
-
-/* Destaque pontual — usar 1x por página no máximo */
-.text-accent { color: #A78BFA; }
-.bg-accent   { background-color: #7C3AED; }
-
-/* ─── Linha horizontal editorial ──────────────────────── */
-.rule {
-  width: 100%;
-  height: 1px;
-  background: #1E1E1E;
+/* ─── Layout helpers ──────────────────────────────────── */
+.wrap {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 48px;
 }
-.rule-accent {
-  width: 32px;
-  height: 1px;
-  background: #7C3AED;
-}
+@media (max-width: 768px) { .wrap { padding: 0 20px; } }
 
-/* ─── Botões — confiança, sem brilho excessivo ─────────── */
+/* ─── Typography ──────────────────────────────────────── */
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+.t-heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.t-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--purple-m);
+}
+.t-body  { font-family: var(--font-body); font-weight: 300; }
+.t-mono  { font-family: var(--font-mono); letter-spacing: 0.04em; }
+
+/* ─── Surfaces ────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+.card:hover { border-color: var(--border2); }
+
+/* ─── Buttons ─────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 14px 32px;
-  font-family: 'Syne', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.25s ease;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  padding: 13px 28px;
+  border-radius: 6px;
+  transition: all 0.25s var(--ease-out);
   white-space: nowrap;
 }
-.btn-fill {
-  background: #F0EEE9;
-  color: #000;
-  border: 1px solid #F0EEE9;
+.btn-primary {
+  background: var(--purple);
+  color: #fff;
+  border: 1px solid var(--purple);
 }
-.btn-fill:hover { background: #A78BFA; border-color: #A78BFA; color: #fff; }
-.btn-fill:active { transform: scale(0.97); }
+.btn-primary:hover {
+  background: var(--purple-m);
+  border-color: var(--purple-m);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(124,58,237,0.35);
+}
+.btn-primary:active { transform: translateY(0) scale(0.98); }
 
-.btn-ghost {
+.btn-secondary {
   background: transparent;
-  color: #F0EEE9;
-  border: 1px solid #2A2A2A;
+  color: var(--text);
+  border: 1px solid var(--border2);
 }
-.btn-ghost:hover { border-color: #555; color: #fff; }
+.btn-secondary:hover {
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.04);
+}
 
-/* ─── Cartões ─────────────────────────────────────────── */
-.card {
-  background: #111;
-  border: 1px solid #1E1E1E;
-  transition: border-color 0.3s ease;
+/* ─── Purple accent line ──────────────────────────────── */
+.accent-line {
+  width: 36px;
+  height: 2px;
+  background: var(--purple);
+  border-radius: 2px;
 }
-.card:hover { border-color: #333; }
+
+/* ─── Gradient backgrounds ────────────────────────────── */
+.bg-glow-top {
+  background: radial-gradient(ellipse 70% 50% at 50% -10%, rgba(124,58,237,0.14) 0%, transparent 70%);
+}
+.bg-glow-right {
+  background: radial-gradient(ellipse 50% 70% at 100% 50%, rgba(124,58,237,0.10) 0%, transparent 70%);
+}
 
 /* ─── Marquee ─────────────────────────────────────────── */
-.marquee-wrap { overflow: hidden; }
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 35s linear infinite;
-}
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee-track { animation: marquee 35s linear infinite; display: flex; }
 .marquee-track:hover { animation-play-state: paused; }
 
 /* ─── Scrollbar ───────────────────────────────────────── */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scroll::-webkit-scrollbar { display: none; }
+.hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+.slim-scroll::-webkit-scrollbar { width: 2px; }
+.slim-scroll::-webkit-scrollbar-thumb { background: #333; }
+.slim-scroll::-webkit-scrollbar-track { background: transparent; }
 
-.slim-scrollbar::-webkit-scrollbar { width: 2px; }
-.slim-scrollbar::-webkit-scrollbar-thumb { background: #333; }
-.slim-scrollbar::-webkit-scrollbar-track { background: transparent; }
-
-/* ─── Utilitários de layout ───────────────────────────── */
-.container-xl { max-width: 1440px; margin: 0 auto; padding: 0 48px; }
-@media (max-width: 768px) { .container-xl { padding: 0 20px; } }
+/* ─── Animations ──────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.7s var(--ease-out) forwards; }

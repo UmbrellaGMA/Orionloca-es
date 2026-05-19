@@ -11,8 +11,6 @@ import Admin from './components/Admin';
 import ReelGallery from './components/ReelGallery';
 import LinkTree from './components/LinkTree';
 import FAQ from './components/FAQ';
-import Feedbacks from './components/Feedbacks';
-import FloatingContact from './components/FloatingContact';
 import { DataProvider, useData } from './contexts/DataContext';
 import { Rocket } from 'lucide-react';
 
@@ -54,27 +52,37 @@ const MainApp = () => {
   const { error } = useData();
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main>
+      <main className="flex-grow">
+        {/* Dobra 1: Hero Animado */}
         <Hero />
+        
+        {/* Dobra 2: Promoções / Banners */}
         <Banners />
 
+        {/* Notificação de Erro Elegante */}
         {error && (
-          <div className="max-w-[1400px] mx-auto px-6 py-4">
-            <p className="text-center text-xs text-red-400 uppercase tracking-widest border border-red-500/20 bg-red-500/5 py-3 rounded">
+          <div className="wrap py-8">
+            <div className="border border-red-500/20 bg-red-500/5 text-red-400 p-4 rounded-xl text-center text-sm">
+              <span className="t-label text-red-500 block mb-1">Aviso do Sistema</span>
               {error}
-            </p>
+            </div>
           </div>
         )}
 
+        {/* Dobra 3: Equipamentos / Catálogo */}
         <Portfolio />
+        
+        {/* Dobra 4: Carrossel (Reel Gallery) */}
         <ReelGallery />
+        
+        {/* Dobra 5: FAQ */}
         <FAQ />
-        <Feedbacks />
       </main>
+      
+      {/* Dobra 6: Rodapé */}
       <Footer />
-      <FloatingContact />
     </div>
   );
 };
